@@ -27,6 +27,10 @@
 #define SERIAL_DEBUG               Serial // Serial, Use any available h/w serial port. Serial1 or Serial2, etc.              Option
 #define SERIAL_DEBUG_BAUD          230400 // 230400, n. Where n=9600,19200,57600,115200,230400,460800 (common baud rates.)    Option
 
+#define I2C_SDA_PIN 14
+
+#define I2C_SCL_PIN 12
+
 // NON-VOLATILE STORAGE ------------------------------------------------------------------------------------------------------------
 #define NV_WIPE                       OFF //         OFF, Causes the defaults to be written back into NV (FLASH,EEPROM,etc.)  Infreq
                                           //              ***     IMPORTANT: ENABLE THIS OPTION THEN UPLOAD, WAIT A MINUTE    ***
