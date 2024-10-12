@@ -55,6 +55,8 @@ OnStep is open source free software, licensed under the GPL.
 
 See [LICENSE.txt](./LICENSE.txt) file.
 
+Parts of the SimpleFOC driver code are licenced under the MIT License, see the folder for details.
+
 # Author
 [Howard Dutton](http://www.stellarjourney.com)
 
