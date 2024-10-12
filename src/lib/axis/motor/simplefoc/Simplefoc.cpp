@@ -1,5 +1,5 @@
 // -----------------------------------------------------------------------------------
-// axis odrive servo motor
+// axis simplefoc servo motor
 
 #include "Simplefoc.h"
 
@@ -7,7 +7,6 @@
   #include <Wire.h>
   // #include "SimpleFOCDrivers.h"
   #include "./i2ccommander/I2CCommanderMaster.h"
-// #include "ODriveEnums.h"
 
 
 #include "../../../tasks/OnTask.h"
@@ -62,8 +61,6 @@ bool SimpleFOCMotor::init() {
   if (axisNumber < 1 || axisNumber > 2) return false;
 
   if (axisNumber == 1) {
-    // pinModeEx(SIMPLEFOC_RST_PIN, OUTPUT);
-    // digitalWriteEx(SIMPLEFOC_RST_PIN, HIGH); // bring ODrive out of Reset
     delay(1000);  // allow time for ODrive to boot
   }
     #if SIMPLEFOC_COMM_MODE == SF_UART
@@ -169,6 +166,7 @@ void SimpleFOCMotor::enable(bool state) {
     //   //   VLF(" Power, closed loop control - command timeout!");
     //   //   return;
     //   // }
+    #error "Not implemented yet"
   #elif SIMPLEFOC_COMM_MODE == SF_I2C
     if (axisNumber <= SIMPLEFOC_I2C_MOTORS1)
     {

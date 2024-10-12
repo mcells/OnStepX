@@ -2239,10 +2239,10 @@
   #define SIMPLEFOC_I2C_MOTORS2            0                      // Number of motors handled by the second I2C device
   #endif
   #ifndef SIMPLEFOC_UPDATE_MS
-  #define SIMPLEFOC_UPDATE_MS              100                       // 10 HZ update rate
+  #define SIMPLEFOC_UPDATE_MS              50                       // 10 HZ update rate
   #endif
   #ifndef SIMPLEFOC_SWAP_AXES
-  #define SIMPLEFOC_SWAP_AXES              ON                        // simplefoc axis 0 = OnStep Axis2 = DEC or ALT
+  #define SIMPLEFOC_SWAP_AXES              OFF                        // simplefoc axis 0 = OnStep Axis2 = DEC or ALT
   #endif                                                             // simplefoc axis 1 = OnStep Axis1 = RA or AZM
   #ifndef SIMPLEFOC_SLEW_DIRECT
   #define SIMPLEFOC_SLEW_DIRECT            OFF                       // ON=using simplefoc trapezoidal move profile. OFF=using OnStep move profile

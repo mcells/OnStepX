@@ -30,7 +30,7 @@
 // #define I2C_SDA_PIN 14
 
 // #define I2C_SCL_PIN 12
-
+SIMPLEFOC_SYNC_LIMIT             1000
 // NON-VOLATILE STORAGE ------------------------------------------------------------------------------------------------------------
 #define NV_WIPE                       OFF //         OFF, Causes the defaults to be written back into NV (FLASH,EEPROM,etc.)  Infreq
                                           //              ***     IMPORTANT: ENABLE THIS OPTION THEN UPLOAD, WAIT A MINUTE    ***
