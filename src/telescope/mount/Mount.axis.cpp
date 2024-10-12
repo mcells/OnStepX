@@ -10,6 +10,11 @@
   ODriveMotor motor1(1, &ODriveSettingsAxis1);
 #endif
 
+#ifdef AXIS1_SIMPLEFOC_PRESENT
+  // const ODriveDriverSettings ODriveSettingsAxis1 = {AXIS1_DRIVER_MODEL, AXIS1_DRIVER_STATUS};
+  SimpleFOCMotor motor1(1);
+#endif
+
 #ifdef AXIS1_SERVO_PRESENT
   ServoControl servoControlAxis1;
 
@@ -94,6 +99,11 @@ Axis axis1(1, &PinsAxis1, &SettingsAxis1, AXIS_MEASURE_RADIANS, arcsecToRad(AXIS
 #ifdef AXIS2_ODRIVE_PRESENT
   const ODriveDriverSettings ODriveSettingsAxis2 = {AXIS2_DRIVER_MODEL, AXIS2_DRIVER_STATUS};
   ODriveMotor motor2(2, &ODriveSettingsAxis2);
+#endif
+
+#ifdef AXIS2_SIMPLEFOC_PRESENT
+  // const ODriveDriverSettings ODriveSettingsAxis2 = {AXIS2_DRIVER_MODEL, AXIS2_DRIVER_STATUS};
+  SimpleFOCMotor motor2(2);
 #endif
 
 #ifdef AXIS2_SERVO_PRESENT

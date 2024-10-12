@@ -379,6 +379,18 @@
   #define AXIS1_ODRIVE_D                1.0                       // D = derivative
   #endif
 #endif
+#if AXIS1_DRIVER_MODEL >= SIMPLEFOC_DRIVER_FIRST && AXIS1_DRIVER_MODEL <= SIMPLEFOC_DRIVER_LAST
+  #define AXIS1_SIMPLEFOC_PRESENT
+  #ifndef AXIS1_SIMPLEFOC_P
+  #define AXIS1_SIMPLEFOC_P                2.0                       // P = proportional
+  #endif
+  #ifndef AXIS1_SIMPLEFOC_I
+  #define AXIS1_SIMPLEFOC_I                5.0                       // I = integral
+  #endif
+  #ifndef AXIS1_SIMPLEFOC_D
+  #define AXIS1_SIMPLEFOC_D                0.0                       // D = derivative
+  #endif
+#endif
 
 #ifndef AXIS2_DRIVER_MODEL
 #define AXIS2_DRIVER_MODEL            OFF                         // specify a driver to enable
@@ -553,6 +565,18 @@
   #endif
   #ifndef AXIS2_ODRIVE_D
   #define AXIS2_ODRIVE_D                 1.0                       // D = derivative
+  #endif
+#endif
+#if AXIS2_DRIVER_MODEL >= SIMPLEFOC_DRIVER_FIRST && AXIS2_DRIVER_MODEL <= SIMPLEFOC_DRIVER_LAST
+  #define AXIS2_SIMPLEFOC_PRESENT
+  #ifndef AXIS2_SIMPLEFOC_P
+  #define AXIS2_SIMPLEFOC_P                2.0                       // P = proportional
+  #endif
+  #ifndef AXIS2_SIMPLEFOC_I
+  #define AXIS2_SIMPLEFOC_I                5.0                       // I = integral
+  #endif
+  #ifndef AXIS2_SIMPLEFOC_D
+  #define AXIS2_SIMPLEFOC_D                0.0                       // D = derivative
   #endif
 #endif
 
@@ -2169,7 +2193,53 @@
                                                                   // or 1/0.7583 = 1.32 arc-min/tick;  1.32*60 sec = 79.2 arc sec per encoder tick
 #endif
 
-#if defined(SERVO_MOTOR_PRESENT) || defined(STEP_DIR_MOTOR_PRESENT) || defined(ODRIVE_MOTOR_PRESENT)
+#if defined(AXIS1_SIMPLEFOC_PRESENT) || defined(AXIS2_SIMPLEFOC_PRESENT)
+  #define SIMPLEFOC_MOTOR_PRESENT
+
+  #ifndef SIMPLEFOC_COMM_MODE
+  #define SIMPLEFOC_COMM_MODE              SF_I2C                    // Use SF_UART or SF_CAN...I2C may be added later
+  #endif
+  #ifndef SIMPLEFOC_SERIAL
+  #define SIMPLEFOC_SERIAL                 Serial                   // Teensy HW Serial3 (if used,) for example
+  #endif
+  #ifndef SIMPLEFOC_SERIAL_BAUD
+  #define SIMPLEFOC_SERIAL_BAUD            115200                    // 115200 baud default
+  #endif
+  #ifndef SIMPLEFOC_I2C_ADDRESS1
+  #define SIMPLEFOC_I2C_ADDRESS1           0x60                     // Address
+  #endif
+  #ifndef SIMPLEFOC_I2C_ADDRESS2
+  #define SIMPLEFOC_I2C_ADDRESS2           0x61                       // Address for second i2c bus driver
+  #endif
+  #ifndef SIMPLEFOC_I2C_SPEED
+  #define SIMPLEFOC_I2C_SPEED              400000                      // Address for second i2c bus driver
+  #endif
+  #ifndef SIMPLEFOC_I2C_MOTORS1
+  #define SIMPLEFOC_I2C_MOTORS1            2                      // Number of motors handled by the first I2C device
+  #endif
+  #ifndef SIMPLEFOC_I2C_MOTORS2
+  #define SIMPLEFOC_I2C_MOTORS2            0                      // Number of motors handled by the second I2C device
+  #endif
+  #ifndef SIMPLEFOC_UPDATE_MS
+  #define SIMPLEFOC_UPDATE_MS              100                       // 10 HZ update rate
+  #endif
+  #ifndef SIMPLEFOC_SWAP_AXES
+  #define SIMPLEFOC_SWAP_AXES              ON                        // simplefoc axis 0 = OnStep Axis2 = DEC or ALT
+  #endif                                                             // simplefoc axis 1 = OnStep Axis1 = RA or AZM
+  #ifndef SIMPLEFOC_SLEW_DIRECT
+  #define SIMPLEFOC_SLEW_DIRECT            OFF                       // ON=using simplefoc trapezoidal move profile. OFF=using OnStep move profile
+  #endif
+  #ifndef SIMPLEFOC_ABSOLUTE
+  #define SIMPLEFOC_ABSOLUTE               ON                        // using absolute encoders
+  #endif
+  #ifndef SIMPLEFOCE_SYNC_LIMIT
+  #define SIMPLEFOC_SYNC_LIMIT             80                        // in arc seconds..one encoder tick
+  #endif                                                          // encoder resolution=2^14=16380; 16380/360=45.5 ticks/deg 
+                                                                  // 45.5/60=0.7583 ticks/min; 0.7583/60 = .00126 ticks/sec
+                                                                  // or 1/0.7583 = 1.32 arc-min/tick;  1.32*60 sec = 79.2 arc sec per encoder tick
+#endif
+
+#if defined(SERVO_MOTOR_PRESENT) || defined(STEP_DIR_MOTOR_PRESENT) || defined(ODRIVE_MOTOR_PRESENT) || defined(SIMPLEFOC_MOTOR_PRESENT)
   #define MOTOR_PRESENT
 #endif
 

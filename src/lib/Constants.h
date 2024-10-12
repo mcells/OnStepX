@@ -77,6 +77,11 @@
 #define ODRIVE                      200    // First generation ODrive (axis 1 and 2 only)
 #define ODRIVE_DRIVER_LAST          200
 
+// simplefoc driver
+#define SIMPLEFOC_DRIVER_FIRST      300
+#define SIMPLEFOC                   300   
+#define SIMPLEFOC_DRIVER_LAST       300
+
 // servo encoder (must match Encoder library)
 #define ENC_FIRST                   1
 #define AB                          1      // AB quadrature encoder
@@ -108,6 +113,7 @@
 #define ODRIVER                     -10    // general purpose flag for a ODRIVE driver motor
 #define SERVO                       -11    // general purpose flag for a SERVO driver motor
 #define STEP_DIR                    -12    // general purpose flag for a STEP_DIR driver motor
+#define SIMPLEDRIVER                -13    // general purpose flag for a SIMPLEFOC driver motor
 
 // NV/EEPROM
 #define NV_KEY_VALUE                111111111UL
