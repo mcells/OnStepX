@@ -6,6 +6,10 @@
   #define PINMAP_STR "MiniPCB v1"
   #include "Pins.MiniPCB.h"
 #endif
+#if PINMAP == ESP32Dev
+  #define PINMAP_STR "ESP32Dev"
+  #include "Pins.ESP32Dev.h"
+#endif
 #if PINMAP == MiniPCB13
   #define PINMAP_STR "MiniPCB v1.3"
   #include "Pins.MiniPCB.h"
