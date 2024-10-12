@@ -128,6 +128,7 @@ class SimpleFOCMotor : public Motor {
     int  stepSize = 1;                  // step size
     volatile int  homeSteps = 1;        // step count for microstep sequence between home positions (driver indexer)
     volatile bool takeStep = false;     // should we take a step
+    bool reverse = false;
 
     float currentFrequency = 0.0F;      // last frequency set 
     float lastFrequency = 0.0F;         // last frequency requested

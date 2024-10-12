@@ -62,24 +62,37 @@ bool SimpleFOCMotor::init() {
   if (axisNumber < 1 || axisNumber > 2) return false;
 
   if (axisNumber == 1) {
-    pinModeEx(SIMPLEFOC_RST_PIN, OUTPUT);
-    digitalWriteEx(SIMPLEFOC_RST_PIN, HIGH); // bring ODrive out of Reset
+    // pinModeEx(SIMPLEFOC_RST_PIN, OUTPUT);
+    // digitalWriteEx(SIMPLEFOC_RST_PIN, HIGH); // bring ODrive out of Reset
     delay(1000);  // allow time for ODrive to boot
-    
+  }
     #if SIMPLEFOC_COMM_MODE == SF_UART
       // SIMPLEFOC_SERIAL.begin(SIMPLEFOC_SERIAL_BAUD);
       // VLF("MSG: SFOC, SERIAL channel init");
       // commander->init();
     #elif SIMPLEFOC_COMM_MODE == SF_I2C
-      Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN, SIMPLEFOC_I2C_SPEED);
-      commander->addI2CMotors(SIMPLEFOC_I2C_ADDRESS1, SIMPLEFOC_I2C_MOTORS1);            // add target device, it has 1 motor
-      #if SIMPLEFOC_I2C_MOTORS2 > 0
-        commander->addI2CMotors(SIMPLEFOC_I2C_ADDRESS2, SIMPLEFOC_I2C_MOTORS2);
-      #endif
-      
-      commander->init();
+      if(!Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN, SIMPLEFOC_I2C_SPEED)){
+        VLF("I2C initialization failed");
+      }
+      if (axisNumber <= SIMPLEFOC_I2C_MOTORS1)
+      {
+        V(axisNumber); VLF("Add motor");
+        commander->addI2CMotors(SIMPLEFOC_I2C_ADDRESS1, SIMPLEFOC_I2C_MOTORS1);            // add target device, it has 1 motor
+
+      }else if (axisNumber > SIMPLEFOC_I2C_MOTORS1 && axisNumber <= SIMPLEFOC_I2C_MOTORS1 + SIMPLEFOC_I2C_MOTORS2)
+      {
+        #if SIMPLEFOC_I2C_MOTORS2 > 0
+          commander->addI2CMotors(SIMPLEFOC_I2C_ADDRESS2, SIMPLEFOC_I2C_MOTORS2);
+        #endif
+      }
     #endif
-  }
+    
+    commander->init();
+
+    // uint8_t nummotors;
+    // commander->readRegister(0, SimpleFOCRegister::REG_NUM_MOTORS, &nummotors, 1);
+    // V(nummotors); VLF(" Motors in driver 1");
+  
 
   enable(false);
 
@@ -103,9 +116,14 @@ bool SimpleFOCMotor::init() {
 // set driver reverse state
 void SimpleFOCMotor::setReverse(int8_t state) {
   if (state == ON) {
-    VF("WRN: SFOC"); V(axisNumber); VF(", ");
-    VLF("axis reversal must be accomplished with hardware or SFOC setup!");
+    // VF("WRN: SFOC"); V(axisNumber); VF(", ");
+    // VLF("axis reversal must be accomplished with hardware or SFOC setup!");
+    reverse = true;
+  } else
+  {
+    reverse = false;
   }
+  
 }
 
 // set driver parameters
@@ -134,9 +152,10 @@ bool SimpleFOCMotor::validateParameters(float param1, float param2, float param3
 void SimpleFOCMotor::enable(bool state) {
   V(axisPrefix); VF("driver powered ");
   if (state) { VLF("up"); } else { VLF("down"); } 
-  
-  // int requestedState = AXIS_STATE_IDLE;
-  // if (state) requestedState = AXIS_STATE_CLOSED_LOOP_CONTROL;
+  VF("axisnumber"); V(axisNumber); VLF("bla");
+
+  uint8_t requestedState = 0; //AXIS_STATE_IDLE
+  if (state) requestedState = 1;//AXIS_STATE_CLOSED_LOOP_CONTROL
   
   #if SIMPLEFOC_COMM_MODE == SF_UART 
     // char command[32];
@@ -153,10 +172,17 @@ void SimpleFOCMotor::enable(bool state) {
   #elif SIMPLEFOC_COMM_MODE == SF_I2C
     if (axisNumber <= SIMPLEFOC_I2C_MOTORS1)
     {
-      commander->writeRegister(axisNumber - 1, SimpleFOCRegister::REG_ENABLE, &state, 1);
-    }else if (axisNumber < SIMPLEFOC_I2C_MOTORS1 + SIMPLEFOC_I2C_MOTORS2)
+      VLF("drv1");
+      uint8_t motorAddr = axisNumber - 1;
+      commander->writeRegister(axisNumber - 1, SimpleFOCRegister::REG_MOTOR_ADDRESS, &motorAddr, 1);
+      commander->writeRegister(axisNumber - 1, SimpleFOCRegister::REG_ENABLE, &requestedState, 1);
+    }else if (axisNumber > SIMPLEFOC_I2C_MOTORS1 && axisNumber <= SIMPLEFOC_I2C_MOTORS1 + SIMPLEFOC_I2C_MOTORS2)
     {
-      commander->writeRegister(axisNumber - 1 - SIMPLEFOC_I2C_MOTORS1, SimpleFOCRegister::REG_ENABLE, &state, 1);
+      VLF("drv2");
+      uint8_t motorAddr = axisNumber - 1 - SIMPLEFOC_I2C_MOTORS1;
+      commander->writeRegister(axisNumber - 1, SimpleFOCRegister::REG_MOTOR_ADDRESS, &motorAddr, 1);
+
+      commander->writeRegister(axisNumber - 1, SimpleFOCRegister::REG_ENABLE, &requestedState, 1);
     }
   #endif
 
@@ -170,6 +196,11 @@ void SimpleFOCMotor::enable(bool state) {
 
 void SimpleFOCMotor::setPosition(int motor_number, float position) {
   // special command to send high resolution position to odrive
+  // VLF("set position");
+  if (reverse)
+  {
+    position *= -1;
+  }
   
   #if SIMPLEFOC_COMM_MODE == SF_UART
       
@@ -181,10 +212,25 @@ void SimpleFOCMotor::setPosition(int motor_number, float position) {
   #elif SIMPLEFOC_COMM_MODE == SF_I2C
     if (motor_number <= SIMPLEFOC_I2C_MOTORS1)
     {
-      commander->writeRegister(motor_number, SimpleFOCRegister::REG_TARGET, &position, sizeof(float));
-    }else if (motor_number < SIMPLEFOC_I2C_MOTORS1 + SIMPLEFOC_I2C_MOTORS2)
+      // if (motor_number == 0)
+      {
+        uint8_t motorAddr = motor_number;
+        commander->writeRegister(motor_number, SimpleFOCRegister::REG_MOTOR_ADDRESS, &motorAddr, 1);
+
+        // float anangle;
+        commander->writeRegister(motor_number, SimpleFOCRegister::REG_TARGET, &position, sizeof(float));
+        // commander->readRegister(motor_number, SimpleFOCRegister::REG_TARGET, &anangle, sizeof(float));
+        // V(anangle); VLF("set position");
+
+      }
+      
+      
+    }else if (motor_number > SIMPLEFOC_I2C_MOTORS1 && motor_number <= SIMPLEFOC_I2C_MOTORS1 + SIMPLEFOC_I2C_MOTORS2)
     {
-      commander->writeRegister(motor_number - SIMPLEFOC_I2C_MOTORS1, SimpleFOCRegister::REG_TARGET, &position, sizeof(float));
+      uint8_t motorAddr = motor_number - SIMPLEFOC_I2C_MOTORS1;
+      commander->writeRegister(motor_number, SimpleFOCRegister::REG_MOTOR_ADDRESS, &motorAddr, 1);
+
+      commander->writeRegister(motor_number, SimpleFOCRegister::REG_TARGET, &position, sizeof(float));
     }
   #endif
 }
@@ -222,12 +268,26 @@ void SimpleFOCMotor::resetPositionSteps(long value) {
     float angle = 0.0f;
     if (axisNumber <= SIMPLEFOC_I2C_MOTORS1)
     {
+      // if (axisNumber == 1)
+      {
+      uint8_t motorAddr = axisNumber - 1;
+      commander->writeRegister(axisNumber - 1, SimpleFOCRegister::REG_MOTOR_ADDRESS, &motorAddr, 1);
+
       commander->readRegister(axisNumber - 1, SimpleFOCRegister::REG_ANGLE, &angle, sizeof(float));
-    }else if (axisNumber < SIMPLEFOC_I2C_MOTORS1 + SIMPLEFOC_I2C_MOTORS2)
+      }
+    }else if (axisNumber > SIMPLEFOC_I2C_MOTORS1 && axisNumber <= SIMPLEFOC_I2C_MOTORS1 + SIMPLEFOC_I2C_MOTORS2)
     {
-      commander->readRegister(axisNumber - 1 - SIMPLEFOC_I2C_MOTORS1, SimpleFOCRegister::REG_ANGLE, &angle, sizeof(float));
+      uint8_t motorAddr = axisNumber - 1 - SIMPLEFOC_I2C_MOTORS1;
+      commander->writeRegister(axisNumber - 1, SimpleFOCRegister::REG_MOTOR_ADDRESS, &motorAddr, 1);
+
+      commander->readRegister(axisNumber - 1, SimpleFOCRegister::REG_ANGLE, &angle, sizeof(float));
     }
-    oPosition = angle*TWO_PI*stepsPerMeasure;
+    oPosition = angle*stepsPerMeasure;
+    if (reverse)
+    {
+      oPosition *= -1;
+    }
+    
   #endif
 
   noInterrupts();
@@ -313,16 +373,17 @@ void SimpleFOCMotor::poll() {
   #endif
   interrupts();
   #if SIMPLEFOC_COMM_MODE == SF_UART
-    setPosition(axisNumber -1, target/(TWO_PI*stepsPerMeasure));
+    setPosition(axisNumber -1, target/(stepsPerMeasure));
   #elif SIMPLEFOC_COMM_MODE == SF_I2C
-    float angle = target/(TWO_PI*stepsPerMeasure);
-    if (axisNumber <= SIMPLEFOC_I2C_MOTORS1)
-    {
-      commander->writeRegister(axisNumber - 1, SimpleFOCRegister::REG_ANGLE, &angle, sizeof(float));
-    }else if (axisNumber < SIMPLEFOC_I2C_MOTORS1 + SIMPLEFOC_I2C_MOTORS2)
-    {
-      commander->writeRegister(axisNumber - 1 - SIMPLEFOC_I2C_MOTORS1, SimpleFOCRegister::REG_ANGLE, &angle, sizeof(float));
-    }
+    setPosition(axisNumber -1, target/(stepsPerMeasure));
+    // float angle = target/(TWO_PI*stepsPerMeasure);
+    // if (axisNumber <= SIMPLEFOC_I2C_MOTORS1)
+    // {
+    //   commander->writeRegister(axisNumber - 1, SimpleFOCRegister::REG_ANGLE, &angle, sizeof(float));
+    // }else if (axisNumber > SIMPLEFOC_I2C_MOTORS1 && axisNumber <= SIMPLEFOC_I2C_MOTORS1 + SIMPLEFOC_I2C_MOTORS2)
+    // {
+    //   commander->writeRegister(axisNumber - 1 - SIMPLEFOC_I2C_MOTORS1, SimpleFOCRegister::REG_ANGLE, &angle, sizeof(float));
+    // }
   #endif
 }
 
